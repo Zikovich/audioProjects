@@ -70,30 +70,27 @@ def extractMainLobe(window, M):
     fftBuffer = np.zeros(N)
     fftBuffer[:hM1] = w[hM2:]
     fftBuffer[N-hM2:] = w[:hM2]
-    
+    fftBuffer = fftBuffer + eps
+
     x = fft(fftBuffer)
+    x = fftshift(x)
     
     absX = abs(x)
     
-    absX[absX<eps] = eps
-    
     mX = 20*np.log10(absX)
-    
-    pX = np.angle(x)
-    
-    mMainLobe = mX[mX]
-    
-    current_value = mMainLobe[0]
-    for ind, next_value in mMainLobe:
-    if next_value > current_value:
-        break
-    else:
-        current_value = next_value    
-    
-    mWindow = np.zeros(2*ind + 1)
-    
-    mWindow[:ind] = mMainLobe[:ind]
-    mWindow[-ind:] = mMainLobe[-ind:]
-    
+
+    maxInd = np.where(abs(mX - max(mX)) < eps)[0][0]
+
+    minInd = maxInd
+
+    # loop to find min index of the first local min from the main loop
+
+    while True:
+        if mX[minInd + 1] > mX[minInd]:
+            break
+        minInd = minInd + 1
+
+    mWindow = mX[(2*maxInd-minInd):minInd+1]
+ 
     return mWindow
     
